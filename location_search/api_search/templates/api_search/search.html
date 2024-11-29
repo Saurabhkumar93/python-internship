@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyword Search with Pagination</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .result-item {
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+        #load-more {
+            margin-top: 10px;
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #load-more:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Search for Keywords</h1>
+<input type="text" id="keyword-input" placeholder="Enter keywords">
+<div id="results"></div>
+<button id="load-more" style="display: none;">Load More</button>
+
+<script>
+    $(document).ready(function () {
+        let currentPage = 1;
+        let keywords = '';
+
+        $('#keyword-input').on('input', function () {
+            keywords = $(this).val();
+            currentPage = 1;  // Reset page when new input is given
+            $('#results').empty();  // Clear previous results
+            if (keywords) {
+                fetchResults();
+            } else {
+                $('#load-more').hide();  // Hide "Load More" button if input is empty
+            }
+        });
+
+        $('#load-more').on('click', function () {
+            currentPage++;
+            fetchResults();  // Fetch the next page of results
+        });
+
+        function fetchResults() {
+            $.ajax({
+                url: `/api_search/search/`,
+                method: 'GET',
+                data: {
+                    keywords: keywords,
+                    page: currentPage,
+                    limit: 100
+                },
+                success: function (response) {
+                    displayResults(response.data);
+                    if (response.has_more) {
+                        $('#load-more').show();  // Show "Load More" button if more data is available
+                    } else {
+                        $('#load-more').hide();  // Hide button if no more data
+                    }
+                },
+                error: function (error) {
+                    console.error('Error fetching results:', error);
+                    $('#results').html('<p>Error fetching data.</p>');
+                }
+            });
+        }
+
+        function displayResults(data) {
+            data.forEach(item => {
+                const div = $('<div>').addClass('result-item').text(JSON.stringify(item));
+                $('#results').append(div);
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

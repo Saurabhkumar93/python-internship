@@ -1,0 +1,41 @@
+DELIMITER //
+
+CREATE PROCEDURE `SearchKeywordsWithPagination`(
+    IN `keywords` TEXT, -- Comma-separated keywords input
+    IN `offset` INT,
+    IN `limit_count` INT
+)
+BEGIN
+    DECLARE search_query TEXT DEFAULT 'SELECT keyword_search FROM city_village WHERE ';
+    DECLARE like_clauses TEXT DEFAULT '';
+    DECLARE like_clauses1 TEXT DEFAULT '';
+    DECLARE current_keyword TEXT;
+
+
+    -- Process each keyword and append the conditions
+    WHILE LENGTH(keywords) > 0 DO
+        -- Get the first keyword
+        SET current_keyword = SUBSTRING_INDEX(keywords, ' ', 1);
+        -- Remove the keyword from the input string
+        SET keywords = SUBSTRING(keywords, LENGTH(current_keyword) + 2);
+        
+        -- Add the LIKE condition to the like_clauses
+        IF LENGTH(like_clauses) = 0 THEN
+            SET like_clauses = CONCAT('keyword_search LIKE ''%', current_keyword, '%''');
+        ELSE
+            SET like_clauses = CONCAT(like_clauses, ' AND keyword_search LIKE ''%', current_keyword, '%''');
+        END IF;
+    END WHILE;
+	SET like_clauses1 = CONCAT(search_query, like_clauses);
+    -- Append the pagination clause
+    SET @query = CONCAT(like_clauses1, 'LIMIT ', limit_count, ' OFFSET ', offset);
+	
+    select @query;
+    -- Prepare, execute and deallocate the dynamic SQL statement
+    PREPARE stmt FROM @query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+
+END //
+
+DELIMITER ;

@@ -1,0 +1,50 @@
+<!-- templates/payments/home.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Page</title>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <h1>Pay $500</h1>
+    <button id="checkout-button">Pay</button>
+
+    <script type="text/javascript">
+        const stripe = Stripe("{{ stripe_publishable_key }}");  // Use your publishable key
+    
+        document.getElementById('checkout-button').addEventListener('click', function () {
+            fetch("/create-checkout-session/", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+            })
+            .then(response => {
+                console.log("Response status:", response.status);  // Log status
+                return response.json();
+            })
+            .then(data => {
+                console.log("Session ID:", data.id);  // Log session ID
+                if (data.error) {
+                    alert(`Error: ${data.error}`);
+                    return;
+                }
+                return stripe.redirectToCheckout({ sessionId: data.id });
+            })
+            .then(result => {
+                if (result && result.error) {
+                    console.error("Redirect error:", result.error.message);
+                    alert(`Error: ${result.error.message}`);
+                }
+            })
+            .catch(error => {
+                console.error("Error in fetch:", error);
+                alert('An error occurred. Please try again.');
+            });
+        });
+    </script>
+</body>
+</html>

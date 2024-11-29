@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stylish WebSocket Client</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #app {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        #app:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        #status {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        #messages {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            height: 200px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            margin-bottom: 10px;
+            text-align: left;
+            font-size: 14px;
+        }
+        #messageInput {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            outline: none;
+        }
+        #sendMsg, #clearMsg {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4caf50;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #sendMsg:hover, #clearMsg:hover {
+            background-color: #45a049;
+        }
+        #clearMsg {
+            background-color: #f44336;
+            margin-left: 10px;
+        }
+        #clearMsg:hover {
+            background-color: #e53935;
+        }
+    </style>
+    <script>
+        var socket;
+
+        // Function to connect to the WebSocket server
+        function connectWebSocket() {
+            // Initialize the socket connection
+            socket = new WebSocket('ws://localhost:8765');
+
+            // When the connection is established
+            socket.onopen = function(event) {
+                console.log("Connected to WebSocket server.");
+                document.getElementById('status').innerText = "Connected";
+                socket.send("Hello from client!");  // Send a message to the server
+            };
+
+            // When a message is received from the server
+            socket.onmessage = function(event) {
+                console.log("Message from server: " + event.data);
+                document.getElementById('messages').innerHTML += "<p>" + event.data + "</p>";
+            };
+
+            // When the connection is closed
+            socket.onclose = function(event) {
+                console.log("WebSocket connection closed.");
+                document.getElementById('status').innerText = "Disconnected";
+            };
+        }
+
+        // Function to send a message to the server
+        function sendMessage() {
+            var message = document.getElementById('messageInput').value;
+            socket.send(message);  // Send message to the server
+            document.getElementById('messageInput').value = '';  // Clear the input field
+        }
+
+        // Clear the messages area
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+        }
+    </script>
+</head>
+<body onload="connectWebSocket()">
+    <div id="app">
+        <h1>WebSocket Client</h1>
+        <p id="status">Connecting...</p>
+        <div id="messages"></div>
+        <input type="text" id="messageInput" placeholder="Type a message">
+        <br>
+        <button id="sendMsg" onclick="sendMessage()">Send Message</button>
+        <button id="clearMsg" onclick="clearMessages()">Clear Messages</button>
+    </div>
+</body>
+</html>

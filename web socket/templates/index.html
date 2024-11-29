@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Client</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #messages { padding: 10px; border: 1px solid #ccc; max-height: 300px; overflow-y: auto; }
+        #sendMsg { margin-top: 10px; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <script>
+        var socket;
+
+        // Function to connect to the WebSocket server
+        function connectWebSocket() {
+            // Initialize the socket connection
+            socket = io.connect('http://' + document.domain + ':' + location.port);
+
+            // When the connection is established
+            socket.on('connect', function() {
+                console.log("Connected to WebSocket server.");
+                document.getElementById('status').innerText = "Connected";
+                socket.send("Hello from client!");  // Send a message to the server
+            });
+
+            // When a message is received from the server
+            socket.on('message', function(msg) {
+                console.log("Message from server: " + msg);
+                document.getElementById('messages').innerHTML += "<p>" + msg + "</p>";
+            });
+
+            // When the connection is closed
+            socket.on('disconnect', function() {
+                console.log("WebSocket connection closed.");
+                document.getElementById('status').innerText = "Disconnected";
+            });
+        }
+
+        // Function to send a message to the server
+        function sendMessage() {
+            var message = document.getElementById('messageInput').value;
+            socket.send(message);  // Send message to the server
+            document.getElementById('messageInput').value = '';  // Clear the input field
+        }
+
+        // Clear the messages area
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+        }
+    </script>
+</head>
+<body onload="connectWebSocket()">
+    <h1>WebSocket Client</h1>
+    <p id="status">Connecting...</p>
+    <div id="messages">
+        <!-- Messages from the server will be displayed here -->
+    </div>
+    <input type="text" id="messageInput" placeholder="Type a message">
+    <button id="sendMsg" onclick="sendMessage()">Send Message</button>
+    <button onclick="clearMessages()">Clear Messages</button>
+</body>
+</html>

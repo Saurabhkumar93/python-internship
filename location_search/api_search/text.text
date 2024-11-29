@@ -1,0 +1,30 @@
+.replace(/[\[\]"']/g, '').replaceAll('/', ',');
+
+
+/api_search/search/?keywords
+
+
+if not keywords:
+            return JsonResponse({"error": "No keywords provided"}, status=400)
+
+        try:
+            # Make the request to the Flask API
+            response = requests.get(f'http://192.168.1.13:5000/search', params={
+                'keywords': keywords,
+                'page': page,
+                'limit': limit,
+            })
+
+            if response.status_code == 200:
+                data = response.json()  # Fetch the raw data from Flask API
+                # print(data['data'][0])
+                # Format the locations before sending to frontend
+                formatted_data = [format_location(item) for item in data['data']]
+                # print(formatted_data)
+                return JsonResponse({'data': formatted_data, 'has_more': data['has_more']}, safe=False)
+
+            return JsonResponse({"error": "Error fetching data from Flask API"}, status=500)
+
+        except requests.exceptions.RequestException as e:
+            print(f"Request error: {e}")
+            return JsonResponse({"error": "Failed to connect to Flask API"}, status=500)

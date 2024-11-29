@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyword Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            margin-left: 10px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #results {
+            margin-top: 20px;
+        }
+        .result-item {
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        #next-button {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Search for Locations</h1>
+<div>
+    <input type="text" id="keyword-input" placeholder="Enter keywords separated by commas or spaces">
+</div>
+<button id="clear-button">Clear</button>
+<button id="next-button">Next</button>
+
+<div id="results"></div>
+
+<script>
+    const input = document.getElementById('keyword-input');
+    const resultsContainer = document.getElementById('results');
+    const nextButton = document.getElementById('next-button');
+    let currentPage = 1;
+
+    input.addEventListener('input', function() {
+        currentPage = 1; // Reset to first page on new input
+        fetchResults();
+    });
+
+    nextButton.addEventListener('click', function() {
+        currentPage++; // Increment page
+        fetchResults();
+    });
+
+    document.getElementById('clear-button').addEventListener('click', function() {
+        input.value = '';
+        resultsContainer.innerHTML = '';
+        nextButton.style.display = 'none'; // Hide next button
+    });
+
+    function fetchResults() {
+        const keywords = input.value;
+        if (!keywords) {
+            resultsContainer.innerHTML = '';
+            nextButton.style.display = 'none';
+            return;
+        }
+
+        fetch(`/search?keywords=${encodeURIComponent(keywords)}&page=${currentPage}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    displayResults(data);
+                    nextButton.style.display = data.length === 100 ? 'block' : 'none'; // Show "Next" if 100 results were fetched
+                } else {
+                    nextButton.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching results:', error);
+            });
+    }
+
+    function displayResults(data) {
+        if (currentPage === 1) {
+            resultsContainer.innerHTML = ''; // Clear previous results for new search
+        }
+        data.forEach(item => {
+            const div = document.createElement('div');
+            div.classList.add('result-item');
+            div.innerText = JSON.stringify(item);
+            resultsContainer.appendChild(div);
+        });
+    }
+</script>
+
+</body>
+</html>
